@@ -28,11 +28,11 @@ def start_server(port=8082, reply_message="Hello from server!"):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     try:
-        # Bind to localhost and specified port
-        server_socket.bind(('localhost', port))
+        # Bind to all interfaces (0.0.0.0) to accept remote connections
+        server_socket.bind(('0.0.0.0', port))
         server_socket.listen(5)
         
-        print(f"Server listening on localhost:{port}")
+        print(f"Server listening on 0.0.0.0:{port} (all interfaces)")
         print(f"Reply message: '{reply_message}'")
         print("Press Ctrl+C to stop the server")
         
