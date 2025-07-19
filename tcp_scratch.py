@@ -40,13 +40,16 @@ class TCPPacket:
                  src_port : int,
                  dst_ip   : str,
                  dst_port : int,
-                 flags    : int=2):   # flag is SYN by default
+                 msg      : str,
+                 flags    : int=2 # flag is SYN by default
+                 ):   
         
         self.src_ip   = src_ip
         self.src_port = src_port
         self.dst_ip   = dst_ip
         self.dst_port = dst_port
         self.flags    = flags
+        self.msg      = msg
 
     def build(self):
         tcp_header = struct.pack(
@@ -61,7 +64,7 @@ class TCPPacket:
             0,              # checksum       2B-> H
             0               # urgent pointer 2B-> H
         )
-        pseudo_header = struct(
+        pseudo_header = struct.pack(
             '!4s4sBBH',
             socket.inet_aton(self.src_ip), # 4B-> 4s
             socket.inet_aton(self.dst_ip), # 4B-> 4s
@@ -70,13 +73,16 @@ class TCPPacket:
             len(tcp_header)                # 2B-> H
         ) 
 
-        check_sum = checkSum(pseudo_header + tcp_header)
-        check_sum = struct('H' , check_sum) 
+        msg_bytes = self.msg.encode()
+        msg_bytes = msg_bytes.ljust(32, b'\x00')  # Pad to 32 bytes
+        data = struct.pack('!32B', *msg_bytes)
 
-        packet = tcp_header[:16] + check_sum + tcp_header[18:]
+        check_sum = checkSum(pseudo_header + tcp_header)
+        check_sum = struct.pack('H' , check_sum) 
+
+        packet = tcp_header[:16] + check_sum + tcp_header[18:] + data
         
         return packet
-
 
 def checkSum(data):
 
@@ -90,7 +96,7 @@ def checkSum(data):
 
         check_sum = (check_sum & 0xffff) + (check_sum >> 16)
 
-    return ~checkSum & 0xffff
+    return ~check_sum & 0xffff
  
     
 

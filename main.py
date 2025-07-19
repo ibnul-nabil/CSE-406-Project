@@ -8,7 +8,7 @@ if __name__ == "__main__":
     dst_ip = "192.168.10.55"
     dst_port = 666
 
-    packet = ts.TCPPacket(src_ip, src_port, dst_ip, dst_port)
+    packet = ts.TCPPacket(src_ip, src_port, dst_ip, dst_port , "helo")
 
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
 
