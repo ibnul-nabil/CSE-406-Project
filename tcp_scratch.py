@@ -64,7 +64,7 @@ class TCPPacket:
             0,              # checksum       2B-> H
             0               # urgent pointer 2B-> H
         )
-        pseudo_header = struct.pack(
+       
         pseudo_header = struct.pack(
             '!4s4sBBH',
             socket.inet_aton(self.src_ip), # 4B-> 4s
@@ -79,7 +79,6 @@ class TCPPacket:
         data = struct.pack('!32B', *msg_bytes)
 
         check_sum = checkSum(pseudo_header + tcp_header)
-        check_sum = struct.pack('H' , check_sum) 
         check_sum = struct.pack('H' , check_sum) 
 
         packet = tcp_header[:16] + check_sum + tcp_header[18:] + data
@@ -98,7 +97,6 @@ def checkSum(data):
 
         check_sum = (check_sum & 0xffff) + (check_sum >> 16)
 
-    return ~check_sum & 0xffff
     return ~check_sum & 0xffff
  
     
