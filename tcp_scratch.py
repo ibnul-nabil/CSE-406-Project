@@ -73,7 +73,7 @@ class TCPPacket:
         check_sum = checkSum(pseudo_header + tcp_header)
         check_sum = struct.pack('H' , check_sum) 
 
-        packet = tcp_header[:16] + check_sum + tcp_header[18:]
+        packet = tcp_header[:16] + check_sum + tcp_header[18:] # Put checksum in correct place in tcp header
         
         return packet
 
