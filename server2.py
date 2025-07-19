@@ -10,8 +10,8 @@ class TCPPacketCapture:
         self.socket = None
 
         self.dst_adr=0x0000 # this stores dst of request. which is src_ip of server
-        self.dst_port = 0
-        self.src_port = 0
+        self.dst_port = '0.0.0.0'
+        self.src_port = '0.0,0,0/////'
         
     def parse_tcp_header(self, packet):
         """Parse TCP header from raw packet"""
@@ -115,7 +115,7 @@ class TCPPacketCapture:
         # You could craft a response packet, log to database, etc.
         segment = ts.TCPPacket(self.dst_adr, self.dst_port, tcp_info['src_ip'], tcp_info['src_port'] , "helo").build()
         packet = ips.IPPacket(self.dst_adr, tcp_info['src_ip']).build() + segment
-
+        print('Making response')
         s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
         s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
         s.sendto(packet, (self.src_port, 0)) 
