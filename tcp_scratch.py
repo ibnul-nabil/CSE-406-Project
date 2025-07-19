@@ -73,7 +73,7 @@ class TCPPacket:
             socket.IPPROTO_TCP,            # 1B-> B 
             len(tcp_header)                # 2B-> H
         ) 
-
+        
         msg_bytes = self.msg.encode()
         msg_bytes = msg_bytes.ljust(32, b'\x00')  # Pad to 32 bytes
         data = struct.pack('!32B', *msg_bytes)
