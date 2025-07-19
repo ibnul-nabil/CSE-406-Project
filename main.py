@@ -1,5 +1,6 @@
 import tcp_scratch as ts
 import ip_scratch as ips
+import struct
 import socket
 
 if __name__ == "__main__":
@@ -10,14 +11,14 @@ if __name__ == "__main__":
     dst_ip = "0.0.0.0"
     dst_port = 8082
 
-    segment = ts.TCPPacket(src_ip, src_port, dst_ip, dst_port , "helo").build()
-    packet = ips.IPPacket(src_ip, dst_ip).build() + segment
+    msg = input("Enter your msg: ")
+    msg_bytes = msg.encode()[:64]
+    msg_bytes = msg_bytes.ljust(64, b'\x00')  # Pad to 32 bytes
+    data = struct.pack('!64B', *msg_bytes)
 
+    segment = ts.TCPPacket(src_ip, src_port, dst_ip, dst_port).build()
+    packet = ips.IPPacket(src_ip, dst_ip).build() + segment + data
 
-
-    # s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
-
-    # s.sendto(packet.build(), (dst_ip, 0)) 
 
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
     s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)

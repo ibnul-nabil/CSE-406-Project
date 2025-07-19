@@ -24,12 +24,12 @@ import socket
 
 class IPPacket:
 
-    total_length = 72
+    total_length = 104
 
     def __init__(self,
                  src_ip : str,
                  dst_ip : str
-                 ):
+                ):
         
         self.src_ip = src_ip
         self.dst_ip = dst_ip
@@ -40,14 +40,14 @@ class IPPacket:
 
         ip_header = struct.pack(
                 '!BBHHHBBH4s4s',
-                0x45,                          # Version (4) + IHL (5)
+                0x45,                          # Version (4)
                 0x00,                          # Type of Service
-                IPPacket.total_length,                  # Total Length
+                IPPacket.total_length,         
                 0xabcd,                        # Identification
                 0x0000,                        # Flags + Fragment Offset
                 0xff,                          # TTL
                 self.protocol,                 # Protocol (e.g., TCP = 6)
-                0,                        # Header Checksum (precomputed or 0 if computing later)
+                0,                             # Header Checksum (precomputed or 0 if computing later)
                 socket.inet_aton(self.src_ip),  
                 socket.inet_aton(self.dst_ip) 
             )

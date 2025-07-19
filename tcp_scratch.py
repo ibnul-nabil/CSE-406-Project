@@ -40,7 +40,6 @@ class TCPPacket:
                  src_port : int,
                  dst_ip   : str,
                  dst_port : int,
-                 msg      : str,
                  flags    : int=2 # flag is SYN by default
                  ):   
         
@@ -49,7 +48,6 @@ class TCPPacket:
         self.dst_ip   = dst_ip
         self.dst_port = dst_port
         self.flags    = flags
-        self.msg      = msg
 
     def build(self):
         tcp_header = struct.pack(
@@ -74,14 +72,10 @@ class TCPPacket:
             len(tcp_header)                # 2B-> H
         ) 
         
-        msg_bytes = self.msg.encode()
-        msg_bytes = msg_bytes.ljust(32, b'\x00')  # Pad to 32 bytes
-        data = struct.pack('!32B', *msg_bytes)
-
         check_sum = checkSum(pseudo_header + tcp_header)
         check_sum = struct.pack('H' , check_sum) 
 
-        packet = tcp_header[:16] + check_sum + tcp_header[18:] + data
+        packet = tcp_header[:16] + check_sum + tcp_header[18:]
         
         return packet
 
