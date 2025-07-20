@@ -5,7 +5,7 @@ import tcp_scratch as ts
 import ip_scratch as ips
 
 class TCPPacketCapture:
-    def __init__(self, port=8082):
+    def __init__(self, port):
         self.port = port
         self.socket = None
 
@@ -21,10 +21,14 @@ class TCPPacketCapture:
         ip_header = packet[0:20]
         
         # Extract IP header info
-        ip_header_unpacked = struct.unpack('!BBHHHBBH4s4s', ip_header)
+        try:
+            ip_header_unpacked = struct.unpack('!BBHHHBBH4s4s', ip_header)
+        except Exception as e:
+            print(f"Error unpacking IP header: {e}")
         version_ihl = ip_header_unpacked[0]
         ihl = version_ihl & 0xF
         iph_length = ihl * 4
+        #print(f"IP Header Length: {iph_length} bytes")
         
         # Extract source and dest IP
         s_addr = socket.inet_ntoa(ip_header_unpacked[8])
@@ -33,9 +37,18 @@ class TCPPacketCapture:
         self.src_adr = s_addr
         
         # TCP header starts after IP header
+         # Check if we have enough bytes for minimum TCP header (20 bytes)
+        tcp_start = iph_length
+        print(f"Packet length: {len(packet)} bytes")
+        print(f"TCP starts at: {tcp_start}")
+
         tcp_header = packet[iph_length:iph_length+20]
-        tcp_header_unpacked = struct.unpack('!HHLLBBHHH', tcp_header)
-        
+        try:
+            tcp_header_unpacked = struct.unpack('!HHLLBBHHH', tcp_header)
+        except Exception as e:
+            print(f"Error unpacking TCP header: {e}")
+            return None
+
         source_port = tcp_header_unpacked[0]
         dest_port = tcp_header_unpacked[1]
         seq_num = tcp_header_unpacked[2]
@@ -77,7 +90,7 @@ class TCPPacketCapture:
             print("Press Ctrl+C to stop")
             
             while True:
-                # Receive packet
+                # Receive packet max size 65565 bytes
                 packet, addr = self.socket.recvfrom(65565)
                 
                 try:
@@ -115,19 +128,19 @@ class TCPPacketCapture:
     def handle_syn_packet(self, tcp_info):
         """Handle detected SYN packet"""
         print(f"Processing SYN from {tcp_info['src_ip']}:{tcp_info['src_port']}")
-        # Add your custom logic here
-        # You could craft a response packet, log to database, etc.
+
         try:
             print(f"trying to send from {self.dst_port} to {tcp_info['src_port']}")
-            segment = ts.TCPPacket(self.dst_adr, self.dst_port, tcp_info['src_ip'], tcp_info['src_port']).build()
+            #segment = ts.TCPPacket(self.dst_adr, self.dst_port, tcp_info['src_ip'], tcp_info['src_port']).build()
             print(f"trying to send from {self.dst_adr} to {tcp_info['src_ip']}")
-            packet = ips.IPPacket(self.dst_adr, tcp_info['src_ip']).build() + segment
+            #packet = ips.IPPacket(self.dst_adr, tcp_info['src_ip']).build() + segment
             print('Completed Making response')
         except Exception as e:
             print(f"Error creating response packets: {e}")
 
         try:
-            self.socket.sendto(packet, (self.src_adr, 0)) 
+            # self.socket.sendto(packet, (self.src_adr, 0))
+            self.socket.sendto("mock SYN-ACK packet".encode('utf-8'), (self.src_adr, 0)) 
         except Exception as e:
             print(f"Error sending: {e}")
         print('Sent reply to user pc')
@@ -136,7 +149,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     else:
-        port = 8082
+        port = 8081
     
     print("Warning: This script captures raw TCP packets and requires root privileges")
     print("It will show SYN packets sent to the specified port")
