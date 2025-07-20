@@ -1,8 +1,8 @@
 import socket
 import struct
 import sys
-import tcp_scratch as ts
-import ip_scratch as ips
+# import tcp_scratch as ts
+# import ip_scratch as ips
 
 class TCPPacketCapture:
     def __init__(self, port):
@@ -39,8 +39,8 @@ class TCPPacketCapture:
         # TCP header starts after IP header
          # Check if we have enough bytes for minimum TCP header (20 bytes)
         tcp_start = iph_length
-        print(f"Packet length: {len(packet)} bytes")
-        print(f"TCP starts at: {tcp_start}")
+        # print(f"Packet length: {len(packet)} bytes")
+        # print(f"TCP starts at: {tcp_start}")
 
         tcp_header = packet[iph_length:iph_length+20]
         try:
