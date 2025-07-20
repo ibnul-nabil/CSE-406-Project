@@ -10,9 +10,11 @@ class TCPPacketCapture:
         self.socket = None
 
         self.dst_adr=0x0000 # this stores dst of request. which is src_ip of server
-        self.dst_port = '0.0.0.0'
-        self.src_port = '0.0,0,0/////'
-        
+        self.dst_port=0
+
+        self.src_port=0
+        self.src_adr=0x0000
+
     def parse_tcp_header(self, packet):
         """Parse TCP header from raw packet"""
         # IP header is typically 20 bytes, TCP header starts after that
@@ -28,6 +30,7 @@ class TCPPacketCapture:
         s_addr = socket.inet_ntoa(ip_header_unpacked[8])
         d_addr = socket.inet_ntoa(ip_header_unpacked[9])
         self.dst_adr = d_addr
+        self.src_adr = s_addr
         
         # TCP header starts after IP header
         tcp_header = packet[iph_length:iph_length+20]
@@ -42,6 +45,7 @@ class TCPPacketCapture:
 
         self.dst_port = dest_port
         self.src_port = source_port
+        
         
         # Extract flags
         syn_flag = bool(flags & 0x02)
@@ -113,12 +117,19 @@ class TCPPacketCapture:
         print(f"Processing SYN from {tcp_info['src_ip']}:{tcp_info['src_port']}")
         # Add your custom logic here
         # You could craft a response packet, log to database, etc.
-        segment = ts.TCPPacket(self.dst_adr, self.dst_port, tcp_info['src_ip'], tcp_info['src_port'] , "helo").build()
-        packet = ips.IPPacket(self.dst_adr, tcp_info['src_ip']).build() + segment
-        print('Making response')
-        s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
-        s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
-        s.sendto(packet, (self.src_port, 0)) 
+        try:
+            print(f"trying to send from {self.dst_port} to {tcp_info['src_port']}")
+            segment = ts.TCPPacket(self.dst_adr, self.dst_port, tcp_info['src_ip'], tcp_info['src_port']).build()
+            print(f"trying to send from {self.dst_adr} to {tcp_info['src_ip']}")
+            packet = ips.IPPacket(self.dst_adr, tcp_info['src_ip']).build() + segment
+            print('Completed Making response')
+        except Exception as e:
+            print(f"Error creating response packets: {e}")
+
+        try:
+            self.socket.sendto(packet, (self.src_adr, 0)) 
+        except Exception as e:
+            print(f"Error sending: {e}")
         print('Sent reply to user pc')
 
 if __name__ == "__main__":
