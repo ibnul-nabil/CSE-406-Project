@@ -141,7 +141,7 @@ class TCPPacketCapture:
                     
         except PermissionError:
             print("Error: Raw sockets require root privileges")
-            print("Run: sudo python3 script.py")
+            print("Run: sudo python3 server.py")
         except KeyboardInterrupt:
             print("\nShutting down...")
         except Exception as e:
