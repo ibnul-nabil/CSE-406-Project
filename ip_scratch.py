@@ -59,7 +59,7 @@ class IPPacket:
 
         ip_header = struct.pack(
                 '!BBHHHBBH4s4s',
-                0x45,                          # Version (4)
+                0x45,                          # Version (4) , ihl(IP header len)
                 0x00,                          # Type of Service
                 IPPacket.total_length,         
                 0xabcd,                        # Identification

@@ -5,15 +5,16 @@ import socket
 
 if __name__ == "__main__":
 
-    src_ip = "192.168.10.151" # single digits cause problems
+    src_ip = "192.168.36.7" # single digits cause problems
     src_port = 3001
     # dst_ip = "20.40.57.81"
-    # dst_ip = "0.0.0.0"
-    dst_ip = "172.174.246.178"
+    dst_ip = "0.0.0.0"
+    # dst_ip = "172.174.246.178"
+    # dst_ip="192.168.36.118"
     dst_port = 8081
 
     # msg = input("Enter your msg: ")
-    msg = "hemlo"
+    msg = "hello"
     msg_bytes = msg.encode()[:64]
     msg_bytes = msg_bytes.ljust(64, b'\x00')  # Pad to 64 bytes
     data = struct.pack('!64B', *msg_bytes)
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     # print(f"Packet length: {len(packet)} bytes")
 
 
-
+    # Raw socket for crafted packet
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
     s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 

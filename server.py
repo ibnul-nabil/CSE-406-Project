@@ -16,8 +16,8 @@ class TCPPacketCapture:
         self.src_adr=0x0000
 
     def parse_tcp_header(self, packet):
-        """Parse TCP header from raw packet"""
-        # IP header is typically 20 bytes, TCP header starts after that
+        
+        # IP header is 20 bytes, TCP header starts after that
         ip_header = packet[0:20]
         
         # Extract IP header info
@@ -36,8 +36,6 @@ class TCPPacketCapture:
         self.dst_adr = d_addr
         self.src_adr = s_addr
         
-        # TCP header starts after IP header
-         # Check if we have enough bytes for minimum TCP header (20 bytes)
         tcp_start = iph_length
         # print(f"Packet length: {len(packet)} bytes")
         # print(f"TCP starts at: {tcp_start}")
@@ -80,13 +78,11 @@ class TCPPacketCapture:
         }
     
     def start_capture(self):
-        """Start capturing TCP packets"""
         try:
-            # Create raw socket (requires root/admin privileges)
+            # Create raw socket
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_TCP)
             
             print(f"Raw socket server listening for TCP packets on port {self.port}")
-            print("Note: This requires root/administrator privileges")
             print("Press Ctrl+C to stop")
             
             while True:
@@ -96,7 +92,7 @@ class TCPPacketCapture:
                 try:
                     tcp_info = self.parse_tcp_header(packet)
                     
-                    # Filter for our target port
+                    # Filter for target port only
                     if tcp_info['dst_port'] == self.port:
                         print(f"\n--- Packet to port {self.port} ---")
                         print(f"From: {tcp_info['src_ip']}:{tcp_info['src_port']}")
@@ -106,8 +102,7 @@ class TCPPacketCapture:
                               f"FIN={tcp_info['fin']}, RST={tcp_info['rst']}")
                         
                         if tcp_info['syn'] and not tcp_info['ack_flag']:
-                            print("*** SYN packet detected! ***")
-                            # Here you can add your custom response logic
+                            print("---SYN packet detected!---")
                             self.handle_syn_packet(tcp_info)
                             
                 except Exception as e:
@@ -115,8 +110,8 @@ class TCPPacketCapture:
                     continue
                     
         except PermissionError:
-            print("Error: Raw sockets require root/administrator privileges")
-            print("Run with: sudo python3 script.py")
+            print("Error: Raw sockets require root privileges")
+            print("Run: sudo python3 script.py")
         except KeyboardInterrupt:
             print("\nShutting down...")
         except Exception as e:
@@ -126,7 +121,7 @@ class TCPPacketCapture:
                 self.socket.close()
     
     def handle_syn_packet(self, tcp_info):
-        """Handle detected SYN packet"""
+        
         print(f"Processing SYN from {tcp_info['src_ip']}:{tcp_info['src_port']}")
 
         try:
@@ -146,13 +141,9 @@ class TCPPacketCapture:
         print('Sent reply to user pc')
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        port = int(sys.argv[1])
-    else:
-        port = 8081
-    
-    print("Warning: This script captures raw TCP packets and requires root privileges")
-    print("It will show SYN packets sent to the specified port")
+
+    port = 8081
+    print("Starting tcp packet capture")
     
     capture = TCPPacketCapture(port)
     capture.start_capture()
