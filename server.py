@@ -6,7 +6,7 @@ import threading
 # import tcp_scratch as ts
 # import ip_scratch as ips
 
-defend = True
+defend = False
 
 #store requests for blocking attacker ip addresses
 ip_log = {}
@@ -141,7 +141,7 @@ class TCPPacketCapture:
                     
         except PermissionError:
             print("Error: Raw sockets require root privileges")
-            print("Run: sudo python3 script.py")
+            print("Run: sudo python3 server.py")
         except KeyboardInterrupt:
             print("\nShutting down...")
         except Exception as e:
