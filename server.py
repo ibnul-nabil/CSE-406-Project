@@ -1,8 +1,31 @@
 import socket
 import struct
 import sys
+import time
+import threading
 # import tcp_scratch as ts
 # import ip_scratch as ips
+
+defend = True
+
+#store requests for blocking attacker ip addresses
+ip_log = {}
+ip_blockList=[]
+
+def log_src_ip(ip):
+    if ip in ip_log:
+        ip_log[ip]+=1
+    else:
+        ip_log[ip]=1
+
+def monitor_ip():
+    while True:
+        time.sleep(2)  # check every 2 seconds for DoS
+        for ip in list(ip_log):  
+            if ip_log[ip] > 20:
+                print(f"Blocking '{ip}' due to possible DoS")
+                ip_log[ip] = 0
+                ip_blockList.append(ip)
 
 class TCPPacketCapture:
     def __init__(self, port):
@@ -91,7 +114,14 @@ class TCPPacketCapture:
                 
                 try:
                     tcp_info = self.parse_tcp_header(packet)
-                    
+
+                    ip_src_chk  = tcp_info['src_ip']
+                    if defend:
+                        if ip_src_chk in ip_blockList:
+                            print(f"IP: {ip_src_chk} is blocked")
+                            continue
+                        log_src_ip(ip_src_chk)
+
                     # Filter for target port only
                     if tcp_info['dst_port'] == self.port:
                         print(f"\n--- Packet to port {self.port} ---")
@@ -144,6 +174,10 @@ if __name__ == "__main__":
 
     port = 8081
     print("Starting tcp packet capture")
+
+    if defend:  
+        monitor_thread = threading.Thread(target=monitor_ip, daemon=True) #daemon: stop thread with program
+        monitor_thread.start()
     
     capture = TCPPacketCapture(port)
     capture.start_capture()

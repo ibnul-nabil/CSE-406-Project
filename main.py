@@ -2,6 +2,7 @@ import tcp_scratch as ts
 import ip_scratch as ips
 import struct
 import socket
+import time
 
 if __name__ == "__main__":
 
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
     s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 
-    # while(True):
-    s.sendto(packet, (dst_ip, 0))
+    while(True):
+        s.sendto(packet, (dst_ip, 0))
+        time.sleep(0.05)  # Pause for 50ms
 
