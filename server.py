@@ -6,11 +6,12 @@ import threading
 # import tcp_scratch as ts
 # import ip_scratch as ips
 
-defend = True
+defend = False
 
 #store requests for blocking attacker ip addresses
 ip_log = {}
 ip_blockList=[]
+ip_backlog=[]
 
 def log_src_ip(ip):
     if ip in ip_log:
@@ -31,6 +32,7 @@ def handle_connection(s, src_adr, dst_adr='', src_port=0, dst_port=0):
         time.sleep(2)
         s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
         time.sleep(4)
+        ip_backlog.append(src_adr)
 
 def monitor_ip():
     while True:
@@ -185,7 +187,7 @@ class TCPPacketCapture:
             t.start
 
         except Exception as e:
-            print(f"Error sending: {e}")
+            print(f"Error threading: {e}")
 
 if __name__ == "__main__":
 
