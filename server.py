@@ -18,14 +18,29 @@ def log_src_ip(ip):
     else:
         ip_log[ip]=1
 
+def handle_connection(s, src_adr, dst_adr='', src_port=0, dst_port=0):
+    if defend:
+        s.sendto("mock SYN-ACK packet with Cookie".encode('utf-8'), (src_adr, 0))
+        # Simulate a less coslty action for server
+        time.sleep(0.1)
+    else:
+        # Costly server actions
+        s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        time.sleep(1)
+        s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        time.sleep(2)
+        s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        time.sleep(4)
+
 def monitor_ip():
     while True:
         time.sleep(2)  # check every 2 seconds for DoS
         for ip in list(ip_log):  
-            if ip_log[ip] > 20:
+            if ip_log[ip] > 50:
                 print(f"Blocking '{ip}' due to possible DoS")
                 ip_log[ip] = 0
                 ip_blockList.append(ip)
+            ip_log[ip]=0
 
 class TCPPacketCapture:
     def __init__(self, port):
@@ -155,20 +170,22 @@ class TCPPacketCapture:
         print(f"Processing SYN from {tcp_info['src_ip']}:{tcp_info['src_port']}")
 
         try:
-            print(f"trying to send from {self.dst_port} to {tcp_info['src_port']}")
+            # print(f"trying to send from {self.dst_port} to {tcp_info['src_port']}")
             #segment = ts.TCPPacket(self.dst_adr, self.dst_port, tcp_info['src_ip'], tcp_info['src_port']).build()
             print(f"trying to send from {self.dst_adr} to {tcp_info['src_ip']}")
             #packet = ips.IPPacket(self.dst_adr, tcp_info['src_ip']).build() + segment
-            print('Completed Making response')
+            #print('Completed Making response')
         except Exception as e:
             print(f"Error creating response packets: {e}")
 
         try:
             # self.socket.sendto(packet, (self.src_adr, 0))
-            self.socket.sendto("mock SYN-ACK packet".encode('utf-8'), (self.src_adr, 0)) 
+            # self.socket.sendto("mock SYN-ACK packet".encode('utf-8'), (self.src_adr, 0))
+            t = threading.Thread(target=handle_connection, daemon=True) 
+            t.start
+
         except Exception as e:
             print(f"Error sending: {e}")
-        print('Sent reply to user pc')
 
 if __name__ == "__main__":
 
@@ -177,7 +194,7 @@ if __name__ == "__main__":
 
     if defend:  
         monitor_thread = threading.Thread(target=monitor_ip, daemon=True) #daemon: stop thread with program
-        monitor_thread.start()
+        monitor_thread.start() # For checking logs and blocking DoS attacker IP
     
     capture = TCPPacketCapture(port)
     capture.start_capture()
