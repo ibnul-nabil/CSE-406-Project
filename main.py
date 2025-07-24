@@ -5,12 +5,14 @@ import socket
 
 if __name__ == "__main__":
 
-    src_ip = "192.168.10.151"
+    src_ip = "192.168.10.56"
     src_port = 20
-    dst_ip = "192.168.10.55"
-    dst_port = 666
+    #dst_ip = "192.168.10.56"
+    dst_ip = "0.0.0.0"
+    dst_port =  8080
 
-    msg = input("Enter your msg: ")
+    #msg = input("Enter your msg: ")
+    msg = "my name is nabil."
     msg_bytes = msg.encode()[:64]
     msg_bytes = msg_bytes.ljust(64, b'\x00')  # Pad to 32 bytes
     data = struct.pack('!64B', *msg_bytes)
