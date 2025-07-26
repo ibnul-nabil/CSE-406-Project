@@ -6,7 +6,7 @@ import threading
 import tcp_scratch as ts
 import ip_scratch as ips
 
-defend = True
+defend = False
 
 
 
@@ -62,7 +62,7 @@ def monitor_ip():
     while True:
         time.sleep(2)  # check every 2 seconds for DoS
         for ip in list(ip_log):  
-            if ip_log[ip] > 30:
+            if ip_log[ip] > 25:
                 print(f"Blocking '{ip}' due to possible DoS")
                 ip_log[ip] = 0
                 ip_blockList.append(ip)
