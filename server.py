@@ -6,7 +6,16 @@ import threading
 import tcp_scratch as ts
 import ip_scratch as ips
 
-defend = False
+defend = True
+
+
+
+def setMessage(msg = "default message"):
+    # msg = "tcp syn ack reply"
+    msg_bytes = msg.encode()[:64]
+    msg_bytes = msg_bytes.ljust(64, b'\x00')  # Pad to 64 bytes
+    data = struct.pack('!64B', *msg_bytes)
+    return data
 
 #store requests for blocking attacker ip addresses
 ip_log = {}
@@ -25,17 +34,20 @@ def handle_connection(s, src_adr, dst_adr='', src_port=0, dst_port=0):
         segment = ts.TCPPacket(dst_adr, dst_port, src_adr, src_port,18).build()
         #print(f"trying to send from {dst_adr} to {src_adr}")
         packet = ips.IPPacket(dst_adr, src_adr).build() + segment
-        print('Completed Making response')
+        print('Completed Making response,sending')
     except Exception as e:
         print(f"Error creating response packets: {e}")
     if defend:
-        # s.sendto("mock SYN-ACK packet with Cookie".encode('utf-8'), (src_adr, 0))
+        
         # Simulate a less coslty action for server
+        packet = packet + setMessage("Cookie for connection")
         s.sendto(packet, (src_adr, 0))
+        # s.sendto("SYN-ACK packet with mock Cookie".encode('utf-8'), (src_adr, 0))
         time.sleep(0.1)
     else:
         # Costly server actions
         #s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        packet = packet+ setMessage("tcp SYN-ACK reply")
         s.sendto(packet, (src_adr, 0))
         time.sleep(1)
         # s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
@@ -50,7 +62,7 @@ def monitor_ip():
     while True:
         time.sleep(2)  # check every 2 seconds for DoS
         for ip in list(ip_log):  
-            if ip_log[ip] > 50:
+            if ip_log[ip] > 30:
                 print(f"Blocking '{ip}' due to possible DoS")
                 ip_log[ip] = 0
                 ip_blockList.append(ip)
