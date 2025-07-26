@@ -6,12 +6,13 @@ import time
 
 if __name__ == "__main__":
 
-    src_ip = "192.168.36.7" # single digits cause problems
+    src_ip = "192.168.0.102" 
+    # dont use multiple single digits
     src_port = 3001
     # dst_ip = "20.40.57.81"
     dst_ip = "0.0.0.0"
     # dst_ip = "172.174.246.178"
-    # dst_ip="192.168.36.118"
+    # dst_ip="192.168.0.103"
     dst_port = 8081
 
     # msg = input("Enter your msg: ")
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW)
     s.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 
-    while(True):
-        s.sendto(packet, (dst_ip, 0))
-        time.sleep(0.05)  # Pause for 50ms
+    #while(True):
+    s.sendto(packet, (dst_ip, 0))
+        #time.sleep(0.05)  # Pause for 50ms
 
