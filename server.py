@@ -3,8 +3,8 @@ import struct
 import sys
 import time
 import threading
-# import tcp_scratch as ts
-# import ip_scratch as ips
+import tcp_scratch as ts
+import ip_scratch as ips
 
 defend = False
 
@@ -20,17 +20,29 @@ def log_src_ip(ip):
         ip_log[ip]=1
 
 def handle_connection(s, src_adr, dst_adr='', src_port=0, dst_port=0):
+    try:
+        print(f"trying to send from {dst_port} to {src_port}")
+        segment = ts.TCPPacket(dst_adr, dst_port, src_adr, src_port,18).build()
+        #print(f"trying to send from {dst_adr} to {src_adr}")
+        packet = ips.IPPacket(dst_adr, src_adr).build() + segment
+        print('Completed Making response')
+    except Exception as e:
+        print(f"Error creating response packets: {e}")
     if defend:
-        s.sendto("mock SYN-ACK packet with Cookie".encode('utf-8'), (src_adr, 0))
+        # s.sendto("mock SYN-ACK packet with Cookie".encode('utf-8'), (src_adr, 0))
         # Simulate a less coslty action for server
+        s.sendto(packet, (src_adr, 0))
         time.sleep(0.1)
     else:
         # Costly server actions
-        s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        #s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        s.sendto(packet, (src_adr, 0))
         time.sleep(1)
-        s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        # s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        s.sendto(packet, (src_adr, 0))
         time.sleep(2)
-        s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        # s.sendto("mock SYN-ACK packet".encode('utf-8'), (src_adr, 0))
+        s.sendto(packet, (src_adr, 0))
         time.sleep(4)
         ip_backlog.append(src_adr)
 
@@ -183,8 +195,8 @@ class TCPPacketCapture:
         try:
             # self.socket.sendto(packet, (self.src_adr, 0))
             # self.socket.sendto("mock SYN-ACK packet".encode('utf-8'), (self.src_adr, 0))
-            t = threading.Thread(target=handle_connection, daemon=True) 
-            t.start
+            t = threading.Thread(target=handle_connection, args=(self.socket,self.src_adr, self.dst_adr, self.src_port, self.dst_port), daemon=True) 
+            t.start()
 
         except Exception as e:
             print(f"Error threading: {e}")
